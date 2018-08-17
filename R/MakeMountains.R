@@ -1,0 +1,56 @@
+# make polygons out of mountains from raster
+library(rRJB)
+myLibrary(c('raster','rgeos','rgdal','tidyverse','sf'))
+library(raster)
+library(SpaDES)
+library(maptools)
+library(sf)
+library(ggplot2)
+myFilePath()
+# thesisNED <- raster("D:/Thesis/MastersThesisGit/EXTRACTIONS/MastersThesisBoundaryEnlarged/NED/MastersThesisBoundaryEnlarged_NED_1.tif")
+#   writeRaster(thesisNED,)
+# hist(thesisNED)
+thesisNED <- raster('GIS/ThesisNEDLarge.tif')
+thesisNED <- aggregate(thesisNED, fact = 10, fun = mean)
+rc <- reclassify(thesisNED, c(2440,Inf,2,  0,2440,1))
+rc[rc < 2] <- NA
+# saveRDS(rc,'GIS/rcthesisNEDLarge.Rds')
+# saveRDS(rc,'GIS/ReclassifiedNED.Rds')
+rc <- readRDS('GIS/rcthesisNEDLarge.Rds')
+tmpdir <- file.path('GIS', "rc-splitRaster")
+y0 <- splitRaster(rc, 3, 3, path = file.path(tmpdir, "y0")) # no buffer
+plot(rc)
+plot()
+projectMountains1 <- rasterToPolygons(y0[[1]])
+projectMountains2 <- rasterToPolygons(y0[[2]])
+projectMountains3 <- rasterToPolygons(y0[[3]])
+projectMountains4 <- rasterToPolygons(y0[[4]])
+projectMountains5 <- rasterToPolygons(y0[[5]])
+projectMountains6 <- rasterToPolygons(y0[[6]])
+projectMountains7 <- rasterToPolygons(y0[[7]])
+projectMountains8 <- rasterToPolygons(y0[[8]])
+projectMountains9 <- rasterToPolygons(y0[[9]])
+rcunion9 <- unionSpatialPolygons(projectMountains9, ID = rep(2,length(projectMountains9)))
+# plot(projectMountains)
+
+# identify adjacent polygons
+myLibrary('maptools')
+projectMountains <- rasterToPolygons(rc)
+rcunion <- unionSpatialPolygons(projectMountains, ID = rep(2,length(projectMountains)))
+# plot(rcunion)
+rcSep <-disaggregate(rcunion)
+plot(rcSep)
+rcSepSf <- st_as_sf(rcSep)
+rcSepSf$area <- st_area(rcSepSf)
+rcSepSf$area <- as.numeric(rcSepSf$area)
+projectMountainsResult <- rcSepSf[rcSepSf$area > 93400743,]
+plot(projectMountainsResult)
+projectMountainsResultSP <- as(projectMountainsResult, "Spatial")
+projectMountainsResultSP@proj4string
+projectMountains <- projectMountainsResult
+projectMountainsSP <- projectMountains
+projectMountainsSP <- as(projectMountainsSP, "Spatial")
+saveRDS(projectMountainsSP, "GIS/projectMountainsSP.Rds")
+saveRDS(projectMountains, "GIS/projectMountains.Rds")
+ggplot(projectMountainsSP, aes(long,lat, group = group)) + geom_polygon()
+

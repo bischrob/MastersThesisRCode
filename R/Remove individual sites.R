@@ -1,0 +1,28 @@
+# This script is meant to find any sites I need to remove from all the data I use regularly
+
+# remove project number 174: duplicate
+x = 174
+DataMaster <- readRDS("Data/DataMaster.RDS")
+DataMaster <- DataMaster %>% filter(!ProjectNumber == x)
+DataMaster %>% filter(ProjectNumber == x) %>% dplyr::select(1)
+saveRDS(DataMaster,'Data/DataMaster.Rds')
+DataMasterSf <- readRDS("Data/DataMasterSf.RDS")
+DataMasterSf <- DataMasterSf %>% filter(!ProjectNumber == x)
+DataMasterSf %>% filter(ProjectNumber == x) %>% dplyr::select(1)
+saveRDS(DataMasterSf,'Data/DataMasterSf.Rds')
+DataMasterMCDAdjusted <- readRDS("Data/DataMasterMCDAdjusted.RDS")
+DataMasterMCDAdjusted <- DataMasterMCDAdjusted %>% filter(!ProjectNumber == x)
+DataMasterMCDAdjusted %>% filter(ProjectNumber == x) %>% dplyr::select(1)
+saveRDS(DataMasterMCDAdjusted,'Data/DataMasterMCDAdjusted.Rds')
+DataMasterMCDStandard <- readRDS("Data/DataMasterMCDStandard.RDS")
+DataMasterMCDStandard <- DataMasterMCDStandard %>% filter(!ProjectNumber == x)
+DataMasterMCDStandard %>% filter(ProjectNumber == x) %>% dplyr::select(1)
+saveRDS(DataMasterMCDStandard,'Data/DataMasterMCDStandard.Rds')
+DataMasterTotals <- readRDS("Data/DataMasterTotals.RDS")
+DataMasterTotals <- DataMasterTotals %>% filter(!ProjectNumber == x)
+DataMasterTotals %>% filter(ProjectNumber == x) %>% dplyr::select(1)
+saveRDS(DataMasterTotals,'Data/DataMasterTotals.Rds')
+DataMasterPosterior <- readRDS("Data/DataMasterPosterior.RDS")
+DataMasterPosterior <- DataMasterPosterior %>% filter(!ProjectNumber == x)
+DataMasterPosterior %>% filter(ProjectNumber == x) %>% dplyr::select(1)
+saveRDS(DataMasterPosterior,'Data/DataMasterPosterior.Rds')
