@@ -248,3 +248,35 @@ DataMasterAdjusted <- DataMasterAdjusted %>% mutate_all(funs(replace(., is.na(.)
 saveRDS(DataMasterAdjusted,'Data/DataMasterAdjusted.Rds')
 write_csv(DataMasterAdjusted,'Data/DataMasterAdjusted.csv')
 
+#######################################################################################
+# Add periods to data master totals
+
+DataMasterTotals <- readRDS('Data/DataMasterTotals.Rds')
+DataMasterTotals <- DataMasterTotals %>% filter(Date %in% 750:999)
+DataMasterTotals$Period <- DataMasterTotals$Date
+DataMasterTotals <- DataMasterTotals %>% select(ProjectNumber,Date,Period,Total:SJRWP)
+DataMasterTotals[which(DataMasterTotals$Period %in% 750:799),3] <- 750
+DataMasterTotals[which(DataMasterTotals$Period %in% 800:849),3] <- 800
+DataMasterTotals[which(DataMasterTotals$Period %in% 850:899),3] <- 850
+DataMasterTotals[which(DataMasterTotals$Period %in% 900:949),3] <- 900
+DataMasterTotals[which(DataMasterTotals$Period %in% 950:999),3] <- 950
+DataMasterTotals$Period <- as.character(DataMasterTotals$Period)
+DataMasterTotals$SJRWDecP <- round(DataMasterTotals$SJRWTotal / DataMasterTotals$DecoratedTotal * 100,2)
+DataMasterTotals$SJRWDecP[which(is.nan(DataMasterTotals$SJRWDecP))] <- 0
+saveRDS(DataMasterTotals,'Data/DataMasterTotals.Rds')
+
+# summary for all sites in the period
+PeriodSummary <- DataMasterTotals
+PeriodSummary <- DataMasterTotals %>% group_by(Period) %>% summarise_at(3:5,funs(sum))
+PeriodSummary$DecP <- round(PeriodSummary$DecoratedTotal / PeriodSummary$Total * 100,2)
+PeriodSummary$SJRWP <- round(PeriodSummary$SJRWTotal / PeriodSummary$Total * 100,2)
+PeriodSummary$SJRWDecP <- round(PeriodSummary$SJRWTotal / PeriodSummary$DecoratedTotal * 100,2)
+# add in number of sites per period
+nSites750 <- length(which(DataMasterTotals$Period %in% 750:799))
+nSites800 <- length(which(DataMasterTotals$Period %in% 800:849))
+nSites850 <- length(which(DataMasterTotals$Period %in% 850:899))
+nSites900 <- length(which(DataMasterTotals$Period %in% 900:949))
+nSites950 <- length(which(DataMasterTotals$Period %in% 950:999))
+PeriodSummary <- PeriodSummary %>% mutate(nSites = rbind(nSites750,nSites800,nSites850,nSites900,nSites950))
+saveRDS(PeriodSummary,'Data/PeriodSummary.Rds')
+
