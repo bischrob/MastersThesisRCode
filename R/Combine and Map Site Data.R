@@ -4,8 +4,9 @@
 library(rRJB)
 myLibrary(c('pkgconfig','rio','tidyverse','sf','leaflet','raster','rgeos','ggpubr','ggsn', 'rgdal', 'grid'))
 
-# convert Data Master to SF
-DataMaster <- read.csv('Data/DataMaster.csv')
+# convert Data Master Adjusted to SF
+DataMaster <- read_csv('Data/DataMaster.csv')
+saveRDS(DataMaster,"Data/DataMaster.Rds")
 DataMasterSf <- st_as_sf(DataMaster, coords = c("EASTING","NORTHING"),
                          remove = F, crs = 26912)
 DataMasterSf <- st_transform(DataMasterSf,4326)
