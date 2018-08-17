@@ -11,43 +11,46 @@ myData <- readRDS('Data/DataMaster.Rds')
 # only use the ceramic types used in my study
 Chronology <- Chronology[which(Chronology$Ceramic_Type %in% names(myData)),]
 
-# x <- seq(min(Chronology$Start_Date),max(Chronology$End_Date))
-# probDistYear <- as.tibble(matrix(nrow = nrow(Chronology), ncol = length(x)+1))
-# names(probDistYear) <- c("CeramicType",paste0("AD",x))
-# probDistYear$CeramicType <- Chronology$Ceramic_Type
-# probDistYear <- probDistYear %>% mutate_all(funs(replace(., is.na(.), 0)))
-# write_csv(probDistYear,'Data/CeramicProbNormalbyYear.csv')
-# 
-# getProbDistNormalYear  <- function(Chronology,probDistYear){ # function to figure out the probability
-#                                                 # of a sherd being within a period
-#    # track time
-#   stime <- Sys.time()
-#     for (i in 1:nrow(probDistYear)){
-#       z <- Chronology[i,]
-#       x <- seq(from = z$Start_Date, to = z$End_Date, by = 1)
-#       # use normal distribution to return the probability that
-#       # a sherd follows within a certain date
-#         # This is from Roberts et al. 2012, but I am using the
-#         # wares start and end dates, as I do not know the sites
-#         # occupation range
-#       d <- dtruncnorm(x, a = mean(x) - sd(x)*2, b= mean(x) + sd(x)*2,mean(x),sd(x))
-#       df <- tibble("Year" = x, Prob = d)
-#       # correct to sum 1
-#       df$Prob <-  df[[2]] / sum(df[[2]])
-#       for(k in 2:ncol(probDistYear)){
-#         t <- as.numeric(substr(names(probDistYear)[k],3,6))
-#         s <- df %>% filter(Year == t)
-#         if(nrow(s) == 1) probDistYear[i,k] <- s$Prob
-#       }
-#     print(paste(i,"of",nrow(probDistYear)))
-#   }
-#     return(probDistYear)
-#   print(stime - Sys.time())
-# }
-# 
-# ProbDistResult <- getProbDistNormalYear(Chronology, probDistYear)
-# saveRDS(ProbDistResult,"Data/ProbDistResultNormalYear.Rds")
-# write_csv(ProbDistResult,"Data/CeramicChronologyProbabilityDistributionNormalYear.csv")
+# create data frame containing the probability for each sherd to be deposited
+# within a given year using a truncated normal distribution
+
+x <- seq(min(Chronology$Start_Date),max(Chronology$End_Date))
+probDistYear <- as.tibble(matrix(nrow = nrow(Chronology), ncol = length(x)+1))
+names(probDistYear) <- c("CeramicType",paste0("AD",x))
+probDistYear$CeramicType <- Chronology$Ceramic_Type
+probDistYear <- probDistYear %>% mutate_all(funs(replace(., is.na(.), 0)))
+write_csv(probDistYear,'Data/CeramicProbNormalbyYear.csv')
+
+getProbDistNormalYear  <- function(Chronology,probDistYear){ # function to figure out the probability
+                                                # of a sherd being within a period
+   # track time
+  stime <- Sys.time()
+    for (i in 1:nrow(probDistYear)){
+      z <- Chronology[i,]
+      x <- seq(from = z$Start_Date, to = z$End_Date, by = 1)
+      # use normal distribution to return the probability that
+      # a sherd follows within a certain date
+        # This is from Roberts et al. 2012, but I am using the
+        # wares start and end dates, as I do not know the sites
+        # occupation range
+      d <- dtruncnorm(x, a = mean(x) - sd(x)*2, b= mean(x) + sd(x)*2,mean(x),sd(x))
+      df <- tibble("Year" = x, Prob = d)
+      # correct to sum 1
+      df$Prob <-  df[[2]] / sum(df[[2]])
+      for(k in 2:ncol(probDistYear)){
+        t <- as.numeric(substr(names(probDistYear)[k],3,6))
+        s <- df %>% filter(Year == t)
+        if(nrow(s) == 1) probDistYear[i,k] <- s$Prob
+      }
+    print(paste(i,"of",nrow(probDistYear)))
+  }
+    return(probDistYear)
+  print(stime - Sys.time())
+}
+
+ProbDistResult <- getProbDistNormalYear(Chronology, probDistYear)
+saveRDS(ProbDistResult,"Data/ProbDistResultNormalYear.Rds")
+write_csv(ProbDistResult,"Data/CeramicChronologyProbabilityDistributionNormalYear.csv")
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -136,7 +139,7 @@ stime <- Sys.time()
 results <- NULL
 DataMasterTotals <- NULL
 source('R/MCDFunction.R')
-DataMasterTotals = foreach(nr=3935:3590, .combine=rbind, .packages = 'tidyverse') %dopar% {
+DataMasterTotals = foreach(nr=1:1000, .combine=rbind, .packages = 'tidyverse') %dopar% {
   # divide the ceramic assemblage into periods
   df <- divideCeramicsYear(mrow = nr, myData = myData,ProbDist = ProbDist)
   if(!is.null(df)){
@@ -241,6 +244,7 @@ for(nr in 1:nrow(myData)){
 }
 
 # save data
-# DataMasterAdjusted <- DataMasterAdjusted %>% mutate_all(funs(replace(., is.na(.), 0)))
-# saveRDS(DataMasterAdjusted,'Data/DataMasterAdjusted.Rds')
-# write_csv(DataMasterAdjusted,'Data/DataMasterAdjusted.csv')
+DataMasterAdjusted <- DataMasterAdjusted %>% mutate_all(funs(replace(., is.na(.), 0)))
+saveRDS(DataMasterAdjusted,'Data/DataMasterAdjusted.Rds')
+write_csv(DataMasterAdjusted,'Data/DataMasterAdjusted.csv')
+
