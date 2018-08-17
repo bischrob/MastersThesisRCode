@@ -13,7 +13,7 @@ library(devtools)
 install_github("bischrob/rRJB")
 ```
 
-This code is likely full of idiosyncrasies, and I have made only a minimal attempts to clean up the scripts to make them more readable.
+This code is likely full of idiosyncrasies, and I have made only minimal attempts to clean up the scripts to make them more readable.
 
 Feel free to contact me with any questions, thoughts, or feedback.
 [bischrob@gmail.com](mailto:bischrob@gmail.com)
