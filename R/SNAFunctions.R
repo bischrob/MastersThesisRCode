@@ -12,7 +12,7 @@ net.stats <- function(y) {
   bw <- sna::betweenness(y, gmode = "graph")
   # combine centrality scores into matrix
   output <- cbind(dg, eg, bw)
-  rownames(output) <- xnames$ProjectNumber
+  rownames(output) <- xnames
   colnames(output) <- c("dg", "eg", "bw")
   return(output)
 }  # return results of this function

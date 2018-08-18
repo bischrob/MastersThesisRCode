@@ -4,19 +4,29 @@
 library(rRJB)
 myLibrary(c("tidyverse","sf",'sp', "ggplot2",'lwgeom','rgeos'))
 
-# regionsAdj <- st_read('GIS/EarlyPuebloRegionsAdjusted.geojson')
-# regionsAdj <- as(regionsAdj,"Spatial")
-# regionsAdj <- spTransform(regionsAdj, CRS("+init=epsg:4326"))
+# Create DataMasterSf from combined summary data (excludes sites that do not date during
+# period of interest)
+
+DataMaster <- readRDS("Data/DataMaster.Rds")
+DataMasterTotals <- readRDS("Data/DataMasterTotals.Rds")
+DMC <- left_join(DataMaster[,1:7],DataMasterTotals, by = "ProjectNumber")
+DataMasterSf <- st_as_sf(DMC, coords = c("EASTING","NORTHING"),
+                         remove = F, crs = 26912)
+DataMasterSf <- st_transform(DataMasterSf,4326)
+DataMasterSf$long <- st_coordinates(DataMasterSf)[,1]
+DataMasterSf$lat <- st_coordinates(DataMasterSf)[,2]
+
+# add region to sf
+
 regionsAdj <- readRDS('GIS/regionsAdj.Rds')
 regionAdjdf <- fortify(regionsAdj, region ="id")
 regionAdjdf <- merge(regionAdjdf, regionsAdj@data, by="id")
-# saveRDS(regionsAdj,'GIS/regionsAdj.Rds')
-# sitesSp <- as(DataMasterSf,"Spatial")
-# sitesSp <- spTransform(sitesSp,regionsAdj@proj4string)
-# regionloc <- sp::over(sitesSp,regionsAdj)
-# DataMasterSf$Region <- regionloc$Name
-# DataMasterSf <- DataMasterSf %>% mutate(SJRWDecP = SJRWTotal / DecoratedTotal * 100)
-# saveRDS(DataMasterSf,'Data/DataMasterSf.Rds')
+sitesSp <- as(DataMasterSf,"Spatial")
+sitesSp <- spTransform(sitesSp,regionsAdj@proj4string)
+regionloc <- sp::over(sitesSp,regionsAdj)
+DataMasterSf$Region <- regionloc$Name
+DataMasterSf <- DataMasterSf %>% mutate(SJRWDecP = SJRWTotal / DecoratedTotal * 100)
+saveRDS(DataMasterSf,'Data/DataMasterSf.Rds')
 DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
 DataMasterSf <- DataMasterSf %>% filter(Date %in% 750:999)
 
@@ -127,3 +137,4 @@ results <- results %>% arrange(Region,Period)
 
 # save results 
 saveRDS(results,'Data/Priors.Rds')
+

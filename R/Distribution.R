@@ -1,5 +1,4 @@
 #' Hexagon distributions
-#' then get mean values ?
 # !diagnostics off
 
 # Hexagons
@@ -7,27 +6,49 @@
 set.seed(1010)
 rRJB::myLibrary(c("sf",'tidyverse','ggspatial','tidyr','raster','rgeos','rgbif','viridis','gridExtra'))
 
+# get project diversity (number of decorated types found at each site)
+DMP <- readRDS("Data/DataMasterPosterior.Rds")
+source('R/CeramicTypeandRangeFunctions.R')
+diversity <- NULL
+i = 0
+for (x in DMP$ProjectNumber){
+  i = i + 1
+  diversity[i] <- nrow(getCeramicTypes(x, onlyMCDtypes = F, onlyFormaltypes = T))
+}
+
+periodDiversity <- tibble(ProjectNumber = DMP$ProjectNumber,
+                          Diversity = diversity,
+                          Region = DMP$Region,
+                          Period = DMP$Period,
+                          SJRWP = round(DMP$posteriormean*100,1))
+saveRDS(periodDiversity, "Data/PeriodDiversity.Rds")
+ggplot(periodDiversity,aes(diversity,SJRWP)) + geom_point()
+regiondiversity <- tibble(Diversity = diversity,
+                          Region = DMP$Region,
+                          SJRWP = round(DMP$posteriormean*100,1))
+regionSum <- regiondiversity %>% group_by(Region) %>% summarise_all(mean)
+
 # load data
 DMP <- readRDS('Data/DataMasterPosterior.Rds')
 
-# boundary <- readRDS('GIS/projectBoundary.Rds')
-# boundary <- st_transform(boundary, 26912)
-# boundarySP <- as(boundary, "Spatial")
+boundary <- readRDS('GIS/projectBoundary.Rds')
+boundary <- st_transform(boundary, 26912)
+boundarySP <- as(boundary, "Spatial")
 
 # also get diversity
-# periodDiversity <- readRDS("Data/PeriodDiversity.Rds")
-# periodDiversity <- periodDiversity %>% dplyr::select(ProjectNumber,Diversity)
-# DMP <- merge(DMP,periodDiversity, by = "ProjectNumber")
+periodDiversity <- readRDS("Data/PeriodDiversity.Rds")
+periodDiversity <- periodDiversity %>% dplyr::select(ProjectNumber,Diversity)
+DMP <- merge(DMP,periodDiversity, by = "ProjectNumber")
 
-# size <- 9000
-# hexPoints <- spsample(boundarySP, type = "hexagonal", cellsize = size, offset = c(0, 0))
-# hexGrid <- HexPoints2SpatialPolygons(hexPoints, dx = size)
-# hexGridSF <- st_as_sf(hexGrid)
-# saveRDS(hexGridSF, "Data/hexGridSF.Rds")
-# hexPointSf <- st_as_sf(hexPoints)
-# hexPointSf$x <- st_coordinates(hexPointSf)[,1]
-# hexPointSf$y <- st_coordinates(hexPointSf)[,2]
-# saveRDS(hexPointSf, "Data/HexPoints.Rds")
+size <- 9000
+hexPoints <- spsample(boundarySP, type = "hexagonal", cellsize = size, offset = c(0, 0))
+hexGrid <- HexPoints2SpatialPolygons(hexPoints, dx = size)
+hexGridSF <- st_as_sf(hexGrid)
+saveRDS(hexGridSF, "Data/hexGridSF.Rds")
+hexPointSf <- st_as_sf(hexPoints)
+hexPointSf$x <- st_coordinates(hexPointSf)[,1]
+hexPointSf$y <- st_coordinates(hexPointSf)[,2]
+saveRDS(hexPointSf, "Data/HexPoints.Rds")
 hexPointSf <- readRDS("Data/HexPoints.Rds")
 hexGridSF <- readRDS("Data/hexGridSF.Rds")
 
@@ -109,8 +130,8 @@ for(p in periods){
   
   ggsave(paste0('GeneralFigures/Hexagon',p,'.png'), dpi = 600,
          width = 3.2, height = 3.72, units = 'in')
-  ggsave(paste0('GeneralFigures/Hexagon-',p,'.svg'),
-         width = 3.2, height = 3.72, units = 'in')
+  # ggsave(paste0('GeneralFigures/Hexagon-',p,'.svg'),
+  #        width = 3.2, height = 3.72, units = 'in')
 
 #confidence intervals
 baseg +
@@ -126,8 +147,8 @@ baseg +
 
 ggsave(paste0('GeneralFigures/HexagonConfidence',p,'-9k.png'), dpi = 600,
        width = 3.2, height = 3.72, units = 'in')
-ggsave(paste0('GeneralFigures/HexagonConfidence',p,'-9k.svg'),
-       width = 3.2, height = 3.72, units = 'in')
+# ggsave(paste0('GeneralFigures/HexagonConfidence',p,'-9k.svg'),
+#        width = 3.2, height = 3.72, units = 'in')
 
     
   # baseg +

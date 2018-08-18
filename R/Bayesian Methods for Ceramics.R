@@ -7,6 +7,7 @@
 # greater than 200 total sherds. Methods adapted from Robertson 1999.
 # Adapted from a Minitab Macro written by Jim Allison
 # !diagnostics off
+# Must run DatabyRegion.R script first
 
 # Load data
 library(rRJB)
@@ -133,8 +134,9 @@ varianceMost <- df[1:10,] # greatest variance
 df <- df[order(df$variance,decreasing = F),]
 varianceLeast <- df[1:10,] # greatest variance
 
+# look at individual sites
 x <- seq(0, 1, .01)
-q <- 3005 # variable to plot
+q <- 48 # ProjectNumber to plot
 plotdf <- df %>% filter(ProjectNumber == q)
 priorbeta <- dbeta(x,plotdf$priora,plotdf$priorb)
 posteriorbeta <- dbeta(x,plotdf$posteriora, plotdf$posteriorb)
@@ -149,26 +151,20 @@ ggplot(dfbeta, aes(x=x, y=val, group=func)) +
                                 paste("Prior mean",round(plotdf$PriorMean,2))))
 
 # ggsave('GeneralFigures/BayesianDistributionssmall.png', dpi = 600, width = 6.5, height = 4, units = 'in')
-# clean and save data
-# df <- df %>% dplyr::select(c(1:4,6,8,10:18,25))
-# saveRDS(df,"Data/DataMasterPosteriorDecorated.Rds")
-DMP <- readRDS('Data/DataMasterPosterior.Rds')
-# dfSimple <- df %>% dplyr::select(ProjectNumber,priormeanDec,posteriormeanDec)
-# st_geometry(dfSimple) <- NULL
-# st_geometry(DMP) <- NULL
-# DMP <- merge(DMP,dfSimple, by = "ProjectNumber", all.x = T)
-# DMP <- st_as_sf(DMP, coords = c("long","lat"), remove = F, crs = 4326)
-# names(DMP)
-# DMP <- DMP %>% dplyr::select(1:3,16:17,4:6,14:15,7:13,21,18,28,31:33)
-# DMP$posteriormeanDec[which(is.na(DMP$posteriormeanDec))] <- 0
-# saveRDS(DMP,"Data/DataMasterPosterior.Rds")
-saveRDS(DMP,"Data/DataMasterPosterior5ormore.Rds")
+
+# Save data
+saveRDS(df,"Data/DataMasterPosterior.Rds")
+
+# Save as DataMasterSf
+DataMasterPosterior <- readRDS("Data/DataMasterPosterior.Rds")
+DMSf <- DataMasterPosterior
+DMSf <- st_as_sf(DMSf, coords = c("EASTING","NORTHING"), remove = F, crs = 26912)
+saveRDS(DMSf,"Data/DataMasterSf.Rds")
 
 ##############################################################################################
 
 # explore differences in observed and posterior
-DMPosterior <- readRDS("Data/DataMasterPosterior5ormore.Rds")
-# DMPosterior <- readRDS("Data/DataMasterPosterior.Rds")
+DMPosterior <- readRDS("Data/DataMasterPosterior.Rds")
 DMPosterior$diff <- round((DMPosterior$SJRWP - DMPosterior$posteriormean) * 100,1)
 DMPosterior$diffABS <- abs(round((DMPosterior$SJRWP - DMPosterior$posteriormean) * 100,1))
 summary(DMPosterior$diff)
@@ -221,12 +217,12 @@ DM200 <- DMPosterior %>% filter(Total >= 200)
 ggplot(DM200, aes(x = SJRWP, y = PriorMean, label = ProjectNumber)) + 
   geom_point() + theme_bw() + xlab("SJRW %") + ylab("Prior Mean") + 
   geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed")
-library(plotly)
+myLibrary("plotly")
 ggplotly(p = ggplot2::last_plot())
 
 # look at specific sites
 # in this case it is a large multi-component site
 DataMaster <- readRDS('Data/DataMaster.Rds')
-q <- DataMaster %>% filter(SiteID == "42SA6396")
+q <- DataMaster %>% filter(SiteID == "1")
 z <- DMPosterior %>% filter(ProjectNumber %in% q$ProjectNumber)
 summary(z$Date)

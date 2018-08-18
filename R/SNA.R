@@ -27,11 +27,11 @@ DMAll <- DMAll %>% dplyr::select(c(1:3,which(names(DMAll) %in% Decorated)))
 # Filter for period
 for(p in unique(DMAll$Period)){
   DM <- DMAll %>% filter(Period == p) %>% dplyr::select(4:ncol(DMAll))
-  xnames <- DMAll %>% filter(Period == p) %>% dplyr::select(1)
-  
+  xnames <- DMAll %>% filter(Period == p) %>%
+  xnames <- DMAll$ProjectNumber
   # get coordinates
   DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
-  xcoords <- DataMasterSf %>% filter(ProjectNumber %in% xnames$ProjectNumber) %>% dplyr::select(14:15)
+  xcoords <- DataMasterSf %>% filter(ProjectNumber %in% xnames) %>% dplyr::select(14:15)
   
   # region
   xRegion <- DataMasterSf %>% filter(Period == p) %>% dplyr::select(16)
@@ -93,87 +93,6 @@ for(p in unique(DMAll$Period)){
   
   # plotly::ggplotly(ggplot2::last_plot())
 }
-
-###########################################################################################
-# figure out relationship to Cortez Black-on-white and centrality
-# Filter for period
-DMAll <- readRDS('Data/DataMasterAdjusted.Rds')
-rs <- rowSums(DMAll[,4:ncol(DMAll)])
-DMAll <- DMAll %>% mutate(Total = rs)
-DMAll <- DMAll %>% filter(Total >=10)
-
-# keep only decorated wares
-Ceramics <- readRDS('Data/CeramicTypeChronologyMaster.Rds')
-Decorated <- Ceramics %>% filter(Decoration %in% c("polychrome",
-                                                   "bichrome",
-                                                   "undifferentiated dec"))
-Decorated <- as.character(Decorated$Ceramic_Type)
-DMAll <- DMAll %>% dplyr::select(c(1:3,which(names(DMAll) %in% Decorated)))
-DMCortez <- DMAll %>% mutate(Total = rowSums(DMAll[,4:145]), CortezP = DMAll$`CORTEZ BLACK-ON-WHITE`/Total*100)
-DMCortez <- DMCortez %>% dplyr::select(ProjectNumber,Total, CortezP)
-DMCortez <- DMCortez %>% filter(Total >=10)
-summary(DMCortez$CortezP)
-DMAll <- DMAll %>% filter(ProjectNumber %in% DMCortez$ProjectNumber)
-DM <- DMAll %>% dplyr::select(4:ncol(DMAll))
-# get coordinates
-DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
-xcoords <- DataMasterSf %>% filter(ProjectNumber %in% DMCortez$ProjectNumber) %>% dplyr::select(14:15)
-xnames <- DMCortez %>% dplyr::select(1)
-# region
-xRegion <- DataMasterSf %>% dplyr::select(16)
-
-# run the function
-DMBR <- BRMatrix(DM)
-DMBR[1:4,1:4]
-
-# Define our binary network object from BR similarity
-BRnet <- network(event2dichot(DMBR, method = "absolute", thresh = 0.75), 
-                 directed = F)
-# Now let's add names for our nodes based on the row names of our original
-# matrix
-BRnet %v% "vertex.names" <- xnames
-# look at the results.
-BRnet
-
-# # color based on region
-# regCol <- as.factor(xRegion$Region)
-# 
-# png(filename = paste0("GeneralFigures/BRNetwork",p,".png"), res = 400, width = 6.5, height = 6.5,
-#     units = 'in')
-#   par(mfrow = c(1, 2))  # set up for plotting two plots, side by side
-#   # plot network using default layout
-#   plot(BRnet, edge.col = "gray", edge.lwd = 0.25, vertex.col = regCol, vertex.cex = 2)
-#   
-#   # plot network using geographic coordinates
-#   plot(BRnet, edge.col = "gray", edge.lwd = 0.25, vertex.col = regCol, vertex.cex = 2,
-#                       coord = as.matrix(xcoords[,1:2]))
-#   legend('bottomleft',fill=as.color(unique(regCol)),legend=unique(regCol), cex=0.75)
-# dev.off()
-
-# net stats for binary BR similarity network
-BR.stats <- net.stats(BRnet)
-plotdf <- as.tibble(BR.stats)
-plotdf <- plotdf %>% mutate(ProjectNumber = row.names(BR.stats),
-                            CortezP = DMCortez$CortezP)
-
-# plot results against SJRWP
-ggplot(plotdf, aes(dg, CortezP)) + 
-  geom_point(size = .75) + 
-  theme_bw() +
-  xlab("Degree Centrality") + ylab("Cortez %") +
-  theme(legend.position="bottom", legend.title = element_blank())
-ggsave(filename = paste0("GeneralFigures/DegreeCentrality-Cortez.png"), dpi = 600,
-       width = 6.5, height = 3, units = 'in')
-
-ggplot(plotdf, aes(eg, CortezP)) + 
-  geom_point(size = .75) + 
-  theme_bw() +
-  xlab("Eigenvector Centrality") + ylab("Cortez %") + 
-  theme(legend.position="bottom", legend.title = element_blank())
-ggsave(filename = paste0("GeneralFigures/Eigenvector-Cortez.png"), dpi = 600,
-       width = 6.5, height = 3, units = 'in')
-
-  # plotly::ggplotly(ggplot2::last_plot())
 
 ###########################################################################################
 
@@ -269,10 +188,11 @@ p = periods[3]
 for(p in periods){
   DM <- DMAll %>% filter(Period == p) %>% dplyr::select(4:ncol(DMAll))
   xnames <- DMAll %>% filter(Period == p) %>% dplyr::select(1)
+  xnames <- xnames$ProjectNumber
   
   # get coordinates
   DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
-  xcoords <- DataMasterSf %>% filter(ProjectNumber %in% xnames$ProjectNumber) %>% dplyr::select(14:15)
+  xcoords <- DataMasterSf %>% filter(ProjectNumber %in% xnames) %>% dplyr::select(14:15)
   
   # region
   xRegion <- DataMasterSf %>% filter(Period == p) %>% dplyr::select(16)
@@ -349,6 +269,7 @@ for(p in periods){
 
 # non local networks - remove all sites within 18 kilometers
 # created weighted networks
+# Warning! This can take multiple days to run
 
 # source functions 
 source('R/SNAFunctions.R')
@@ -369,13 +290,13 @@ DMAll <- DMAll %>% dplyr::select(c(1:3,which(names(DMAll) %in% Decorated)))
 
 # Filter for period
 periods <- sort(unique(DMAll$Period))
-# p = periods[2]
+p = periods[2]
 for(p in periods){
   DM <- DMAll %>% filter(Period == p) %>% dplyr::select(c(1,4:ncol(DMAll)))
   NonLocalCentrality <- tibble(ProjectNumber = rep(NA,nrow(DM)), EG = rep(NA,nrow(DM)))
   
   # run network centrality for each site in the period minues all sites within 18 kilometers
-  # x = 20
+  x = 20
   for (x in 1:nrow(DM)){
     siteP <- unname(unlist(DM[x,1]))
     siteN <- DMPost[DMPost$ProjectNumber == siteP,]

@@ -4,26 +4,16 @@
 library(rRJB)
 myLibrary(c('pkgconfig','rio','tidyverse','sf','leaflet','raster','rgeos','ggpubr','ggsn', 'rgdal', 'grid'))
 
-# convert Data Master Adjusted to SF
-DataMaster <- read_csv('Data/DataMaster.csv')
-saveRDS(DataMaster,"Data/DataMaster.Rds")
-DataMasterSf <- st_as_sf(DataMaster, coords = c("EASTING","NORTHING"),
-                         remove = F, crs = 26912)
-DataMasterSf <- st_transform(DataMasterSf,4326)
-DataMasterSf$long <- st_coordinates(DataMasterSf)[,1]
-DataMasterSf$lat <- st_coordinates(DataMasterSf)[,2]
-saveRDS(DataMasterSf,"Data/DataMasterSf.Rds")
-
 # plot project area with all sites
 DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
 source('R/getBasePlot.R')
 
 basegLabels <- getBasePlot(labels = T, scalebar = T, sizeF = 1, smallbase = F)
-# basegLabels + 
-#   geom_point(data = DataMasterSf, aes(x = long, y = lat), color = "lightblue", size = .1)
+basegLabels +
+  geom_point(data = DataMasterSf, aes(x = long, y = lat), color = "lightblue", size = .1)
 
-ggsave(filename = "GeneralFigures/ProjectMap.png", width = 6.5, units = "in", dpi = 600)
-ggsave(filename = "GeneralFigures/ProjectMap.svg")
+# ggsave(filename = "GeneralFigures/ProjectMap.png", width = 6.5, units = "in", dpi = 600)
+# ggsave(filename = "GeneralFigures/ProjectMap.svg")
 
 # print by periods
 
@@ -31,8 +21,7 @@ DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
 DataMasterSf <- DataMasterSf %>% filter(Date %in% 750:999)
 source('R/getBasePlot.R')
 if(!exists('baseg')) baseg <- getBasePlot(labels = F, scalebar = F, sizeF = .8)
-# NArrow <- png::readPNG('North Arrow.png')
-# NArrow <- rasterGrob(NArrow)
+
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
@@ -51,11 +40,10 @@ for(j in 1:length(myPeriods)){
     theme(plot.title = element_text(size=9)) +
     scalebar(location = "bottomleft", dist = 50, dd2km = TRUE, model = 'WGS84',
              st.size = 2, x.min =-110 , x.max =-107, y.min = 35.4 , y.max = 37.5) 
-    # annotation_custom(NArrow, ymin = 35.45, ymax = 35.67, xmax = -108.1) 
   ggsave(paste0("GeneralFigures/Period ",myPeriods[j],".png"), dpi = 600,
          width = 3, height = 2.5, units = "in", plot =p1)
-  ggsave(paste0("GeneralFigures/Period ",myPeriods[j],".svg"),
-         plot = p1)
+  # ggsave(paste0("GeneralFigures/Period ",myPeriods[j],".svg"),
+  #        plot = p1)
 }
 
 # zoom in on Eastern Mesa Verde region for comparison
@@ -72,8 +60,6 @@ subregionText <- tibble(id = subregions@data$id,
                         long = subregionText@coords[,1],
                         lat = subregionText@coords[,2])
 subregionText <- merge(subregionText, subregions@data, by="id")
-# NArrow <- png::readPNG('North Arrow.png')
-# NArrow <- rasterGrob(NArrow)
 source('R/getBasePlot.R')
 if(!exists('baseP')) baseP <- getBasePlot(labels = F, scalebar = F, sizeF = 1)
 
@@ -89,17 +75,15 @@ baseP <- baseP +
                            axis.ticks = element_blank()) +
   scalebar(location = "bottomleft", dist = 10, dd2km = TRUE, model = 'WGS84',
            st.size = 2, x.min =-108.2 , x.max =-106.2 , y.min =36.65 , y.max =37.55 ) 
-  # annotation_custom(NArrow, ymin = 36.68, ymax = 36.76, xmax = -107.777) 
 
 baseP + 
   geom_text(data = subregionText, aes(x = long,y = lat), label = subregionText$Name, size = 1.75,
           fontface = "bold") 
-ggsave(paste0("GeneralFigures/EasternMesaVerdeSubRegions.svg"))
-
-DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
-DataMasterSf <- DataMasterSf %>% filter(Date %in% 750:999)
+# ggsave(paste0("GeneralFigures/EasternMesaVerdeSubRegions.png"))
 
 # look at the number of sites per district per period
+DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
+DataMasterSf <- DataMasterSf %>% filter(Date %in% 750:999)
 EMV <- DataMasterSf %>% filter(Region == "East Mesa Verde")
 st_crs(EMV)
 subregions <- st_read("GIS/EasternMesaVerdeSubregions.geojson")
@@ -139,18 +123,16 @@ regions <- as(regions,"Spatial")
 regions <- spTransform(regions, CRS("+init=epsg:4326"))
 regiondf <- fortify(regions, region ="id")
 regiondf <- merge(regiondf, regions@data, by="id")
-# regionText <- gCentroid(regions, byid = T)
-# regionText <- tibble(id = regions@data$id, long = regionText@coords[,1],lat = regionText@coords[,2])
-# regionText <- merge(regionText, regions@data, by="id")
-# regionText[5,3] <- 35.9
-# regionText[2,3] <- 37.355
-# saveRDS(regionText, 'GIS/regionText.Rds')
-regionText <- readRDS('GIS/regionText.Rds')
+regionText <- gCentroid(regions, byid = T)
+regionText <- tibble(id = regions@data$id, long = regionText@coords[,1],lat = regionText@coords[,2])
+regionText <- merge(regionText, regions@data, by="id")
+regionText[5,3] <- 35.9
+regionText[2,3] <- 37.355
 regionText$Name <- gsub("East","Eastern", regionText$Name)
 source('R/getBasePlot.R')
 if(!exists('baseL')) baseL <- getBasePlot(labels = F, scalebar = T, sizeF = 1)
 DataMasterSf <- readRDS('Data/DataMasterSf.Rds')
-border <- readRDS('GIS/projectBoundary.RDS')
+border <- readRDS('GIS/projectBoundary.Rds')
 border <- st_transform(border, 4326)
 border <- as(border,"Spatial")
 borderdf <- fortify(border)
@@ -176,8 +158,8 @@ baseL +
   geom_text(data = citylocs, aes(lon,lat), label = citylocs$Name, size = 2.5,
             nudge_y = -.03, fontface = "bold") 
 
-ggsave(filename = "GeneralFigures/ProjectMapRegionswithBorder.png", width = 6.5, units = "in", dpi = 600)
-ggsave(filename = "GeneralFigures/ProjectMapRegionswithBorder.svg")
+# ggsave(filename = "GeneralFigures/ProjectMapRegionswithBorder.png", width = 6.5, units = "in", dpi = 600)
+# ggsave(filename = "GeneralFigures/ProjectMapRegionswithBorder.svg")
 
 # plot adjusted regions
 
@@ -196,9 +178,9 @@ baseL +
   geom_text(data = regionText, aes(long,lat), label = regionText$Name, size = 4,
             nudge_y = -.1, fontface = "bold") 
 
-ggsave(filename = "GeneralFigures/ProjectMapRegionsAdjusted.png", width = 6.5, units = "in",
-       dpi = 600)
-ggsave(filename = "GeneralFigures/ProjectMapRegionsAdjusted.svg")
+# ggsave(filename = "GeneralFigures/ProjectMapRegionsAdjusted.png", width = 6.5, units = "in",
+#        dpi = 600)
+# ggsave(filename = "GeneralFigures/ProjectMapRegionsAdjusted.svg")
 
 # plot sites by region and by size
 source('R/getBasePlot.R')
@@ -219,9 +201,9 @@ baseg +
   # annotation_custom(NArrow, ymin = 35.45, ymax = 35.67, xmax = -108.1)  +
   geom_text(data = regionText, aes(long,lat), label = regionText$Name, size = 2,
             nudge_y = -.1, fontface = "bold") 
-ggsave("GeneralFigures/Sitesmorethan100Main.png",
-       dpi = 600, width = 3, height = 2.5, units = "in")
-ggsave("GeneralFigures/Sitesmorethan100Main.svg")
+# ggsave("GeneralFigures/Sitesmorethan100Main.png",
+#        dpi = 600, width = 3, height = 2.5, units = "in")
+# ggsave("GeneralFigures/Sitesmorethan100Main.svg")
 
 for(j in 1:length(myPeriods)){
   plotdf <- DataMasterSf %>% filter(Period == myPeriods[j])
@@ -230,14 +212,15 @@ for(j in 1:length(myPeriods)){
                    color = "#A9A9A9", alpha = .35) + 
       ggtitle(myPeriods[j]) + guides(fill = F) + 
       theme(plot.title = element_text(size = 9)) 
-    ggsave(paste0("GeneralFigures/Sitesmorethan100-",myPeriods[j],".png"),
-    dpi = 600, width = 3, height = 2.5, units = "in")
-    ggsave(paste0("GeneralFigures/Sitesmorethan100-",myPeriods[j],".svg"))
+    # ggsave(paste0("GeneralFigures/Sitesmorethan100-",myPeriods[j],".png"),
+    # dpi = 600, width = 3, height = 2.5, units = "in")
+    # ggsave(paste0("GeneralFigures/Sitesmorethan100-",myPeriods[j],".svg"))
 }
 
 # add location map
-rRJB::myLibrary(c("sf","tidyverse"))
-states <- st_read("R:/AnthroPubs/Robert B/GIS Data/cb_2015_us_state_20m/WesternStates.shp")
+rRJB::myLibrary(c("sf","tidyverse",'tigris'))
+states <- states()
+states <- st_as_sf(states)
 states <- states %>% filter(STUSPS %in% c("UT","CO","AZ","NM"))
 statesSP <- as(states,"Spatial")
 statesSP <- fortify(statesSP)
@@ -245,7 +228,7 @@ boundary <- readRDS("GIS/ProjectBoundary.Rds")
 boundary <- as(boundary,"Spatial")
 boundary <- fortify(boundary)
 # get coordinates for labels
-df <- locator()
+# df <- locator()
 df <- tibble(x = df$x, y = df$y, name = c("Utah", "Colorado","New Mexico", "Arizona"))
 df$x <- c(-112, -106, -106, -112)
 df$y <- c(39.5,39.5,35,35)
@@ -257,5 +240,5 @@ ggplot(statesSP) + geom_polygon(aes(long-.35,lat-.35, group = group)) +
                size = 2, alpha = .8) +
   theme_void() + coord_fixed(1.1)  
   
-ggsave("GeneralFigures/ProjectLocation.svg", bg = "transparent")
-ggsave("GeneralFigures/ProjectLocation.png", dpi = 600, bg = "transparent")
+# ggsave("GeneralFigures/ProjectLocation.svg", bg = "transparent")
+# ggsave("GeneralFigures/ProjectLocation.png", dpi = 600, bg = "transparent")

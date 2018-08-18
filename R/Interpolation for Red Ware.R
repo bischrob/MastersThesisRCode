@@ -21,7 +21,7 @@ boundary <- readRDS("GIS/BorderEnlarged.Rds")
 boundary <- spTransform(boundary, CRS("+init=epsg:26912"))
 countiesSP <- readRDS('GIS/CountiesSP.Rds')
 
-# i = 3
+i = 3
 for (i in 1:length(periods)){
   p <- periods[i]
   sites <- sitesMaster %>% filter(Period == p)
@@ -35,7 +35,8 @@ for (i in 1:length(periods)){
   
   # Plots
   rg <- disaggregate(rg, fact = 3, method = 'bilinear')
-  rdf <- fortify(rg)
+  rdf <- ggspatial::spatial_fortify(rg)
+  names(rdf) <- c("x","y","band1")
   rdf <- rdf[which(!is.na(rdf$band1)),]
   # rdf <- rdf %>% filter(band1 > )
 
@@ -217,7 +218,8 @@ for (i in 1:length(periods)){
 
   # Plots
   rg <- disaggregate(rg, fact = 3, method = 'bilinear')
-  rdf <- fortify(rg)
+  rdf <- ggspatial::spatial_fortify(rg)
+  names(rdf) <- c("x","y","band1")
   rdf <- rdf[which(!is.na(rdf$band1)),]
   # rdf <- rdf %>% filter(band1 > )
 
@@ -270,3 +272,4 @@ for (i in 1:length(periods)){
   ggsave(paste0('GeneralFigures/IDW-',p,'w-sites-decorated.svg'),
          height = 3, units = 'in')
 }
+

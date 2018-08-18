@@ -13,23 +13,7 @@ getBasePlot <- function(labels = F, scalebar = T, sizeF = 1, smallbase = F){
   projectRivers <- readRDS('GIS/projectRivers.Rds')
   projectRivers <- as(projectRivers, "Spatial")
   countiesSP <- readRDS('GIS/CountiesSP.Rds')
-  # projectMountainsSP <- readRDS("GIS/projectMountainsSP.Rds") # from MakeMountains.R script
-  # mountainCoords <- gCentroid(projectMountainsSP, byid = T)
-  # mountainlocs <- data.frame(ID = 1:length(mountainCoords), Name = rep("",length(mountainCoords)))
-  # mountainlocs <- cbind(mountainlocs,mountainCoords@coords)
-  # mountainlocs$Name <- as.character(mountainlocs$Name)
-  # mountainlocs[mountainlocs$ID == 18,2] <- "Abajo Mountains"
-  # mountainlocs[mountainlocs$ID == 15,2] <- "Chuska Mountains"
-  # mountainlocs[mountainlocs$ID == 27,2] <- "San Juan Mountains"
-  # rownames(mountainlocs) <- 1:nrow(mountainlocs)
-  # Abajo <- mountainlocs[18,]
-  # Chuska <- mountainlocs[15,]
-  # SanJuan <- mountainlocs[27,]
-  # saveRDS(Abajo,'GIS/Abajo.Rds')
-  # saveRDS(Chuska,'GIS/Chuska.Rds')
-  # saveRDS(SanJuan,'GIS/SanJuan.Rds')
-  # NArrow <- png::readPNG('North Arrow.png')
-  # NArrow <- rasterGrob(NArrow)
+  projectMountainsSP <- readRDS("GIS/projectMountainsSP.Rds") # from MakeMountains.R script
 
   if(smallbase == T){
     baseg <- ggplot() + 

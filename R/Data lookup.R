@@ -1,4 +1,4 @@
-# This script is for generally looking up info and quickly mapping it
+# This script is for generally looking up info
 
 library(rRJB)
 myLibrary(c('tidyverse','data.table','rio','sp'))
@@ -125,28 +125,6 @@ mapview(p1) + boundary
 # DataMaster$Database[which(DataMaster$Project == "VEPII")] <- "VEP"
 # DataMaster$Database[which(DataMaster$Project == "Chaco Social Networks DB")] <- "CSNP"
 # table(DataMaster$Database)
-
-# get project diversity (number of decorated types found at each site)
-DMP <- readRDS("Data/DataMasterPosterior.Rds")
-source('R/CeramicTypeandRangeFunctions.R')
-diversity <- NULL
-i = 0
-for (x in DMP$ProjectNumber){
-  i = i + 1
-  diversity[i] <- nrow(getCeramicTypes(x, onlyMCDtypes = F, onlyFormaltypes = T))
-}
-
-periodDiversity <- tibble(ProjectNumber = DMP$ProjectNumber,
-                          Diversity = diversity,
-                          Region = DMP$Region,
-                          Period = DMP$Period,
-                          SJRWP = round(DMP$posteriormean*100,1))
-saveRDS(periodDiversity, "Data/PeriodDiversity.Rds")
-ggplot(periodDiversity,aes(diversity,SJRWP)) + geom_point()
-regiondiversity <- tibble(Diversity = diversity,
-                          Region = DMP$Region,
-                          SJRWP = round(DMP$posteriormean*100,1))
-regionSum <- regiondiversity %>% group_by(Region) %>% summarise_all(mean)
 
 # look at sites with little SJRW by decorated values
 DMP <- readRDS("Data/DataMasterPosterior.Rds")

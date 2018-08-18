@@ -190,11 +190,11 @@ PeriodSherdDensityAll <- function(x){ # x is the projectnumber
       # mean ceramic date
       mcdr <- getMCD(df)
       df$Date <- mcdr
-      df$Period <- ifelse(df$Date %in% 750:799,'AD 750',
-                   ifelse(df$Date %in% 800:849,'AD 800',
-                   ifelse(df$Date %in% 850:899,'AD 850',
-                   ifelse(df$Date %in% 900:949,'AD 900',
-                   ifelse(df$Date %in% 950:999,'AD 950',NA)))))
+      df$Period <- ifelse(df$Date %in% 750:799,'750',
+                   ifelse(df$Date %in% 800:849,'800',
+                   ifelse(df$Date %in% 850:899,'850',
+                   ifelse(df$Date %in% 900:949,'900',
+                   ifelse(df$Date %in% 950:999,'950',NA)))))
       df <- df %>% dplyr::select(1,(ncol(df)-1),ncol(df),2:(ncol(df)-2))
       return(df)
     }

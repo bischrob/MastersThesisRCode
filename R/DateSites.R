@@ -1,5 +1,8 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # This script is designed to date all of my sites
+# update: dating is now done in the period sherd density script, this script
+# is now more for exploring the dating
+
 library(rRJB)
 myLibrary(c('rio','tidyverse','reshape2','janitor'))
 

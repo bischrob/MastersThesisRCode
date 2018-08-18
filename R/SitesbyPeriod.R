@@ -4,23 +4,11 @@ library(rRJB)
 myLibrary(c('tidyverse'))
 
 # load data
-DataMasterMyPeriods <- readRDS('Data/DataMasterPeriods.Rds')
+DataMasterMyPeriods <- readRDS('Data/DataMasterSf.Rds')
 
 # ggplot
-borderSP <- as(border, "Spatial")
-# e <- extent(borderSP)
-# e@xmin <- e@xmin - 2
-# e@xmax <- e@xmax + 2
-# e@ymin <- e@ymin - 2
-# e@ymax <- e@ymax + 2
-# borderEnlarged <- as(e, 'SpatialPolygons')
-# saveRDS(borderEnlarged,'GIS/BorderEnlarged.Rds')
 borderEnlarged <- readRDS('GIS/BorderEnlarged.Rds')
 borderEnlargedSf <- st_as_sf(borderEnlarged)
-# projectRivers <- readRDS('GIS/rivers.Rds')
-# projectRivers <- st_as_sf(projectRivers)
-# projectRivers <- projectRivers[borderEnlargedSf,]
-# saveRDS(projectRivers,'GIS/projectRivers.Rds')
 projectRivers <- readRDS('GIS/projectRivers.Rds')
 projectRivers <- as(projectRivers, "Spatial")
 countiesSP <- readRDS('GIS/CountiesSP.Rds')
@@ -40,9 +28,7 @@ ggplot() +
             color = "lightgray", size = .5) +
   geom_polygon(data = countiesSP, aes(long, lat, group = group),
                fill = NA, color = "black") +
-  geom_polygon(data = borderSP, aes(long, lat, group = group),
-               fill = "blue", color = "blue", size = .1, alpha = .1) + 
-  geom_point(data = SiteMasterSf, aes(x = long, y = lat), color = "blue", size = .7) +
+  geom_point(data = DataMasterMyPeriods, aes(x = long, y = lat), color = "blue", size = .7) +
   theme_bw() + coord_fixed(1.3, xlim = c(-110.6,-106.9), ylim = c(35.4,38)) +
   xlab("Longitude") + ylab("Latitude") + 
   geom_text(data = Abajo, aes(x,y), label = Abajo$Name, size = 2.8) +

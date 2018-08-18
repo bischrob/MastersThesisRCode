@@ -173,7 +173,7 @@ Sys.time() - stime
 
 # save data
 saveRDS(DataMasterTotals,'Data/DataMasterTotals.Rds')
-write_csv(DataMasterTotals,'Data/DataMasterTotals.csvs')
+write_csv(DataMasterTotals,'Data/DataMasterTotals.csv')
 
 # run plots sampling for 10% of sites
 # DataMasterTotals <- readRDS('Data/DataMasterTotalsbyYear.Rds')
@@ -252,14 +252,15 @@ write_csv(DataMasterAdjusted,'Data/DataMasterAdjusted.csv')
 # Add periods to data master totals
 
 DataMasterTotals <- readRDS('Data/DataMasterTotals.Rds')
-DataMasterTotals <- DataMasterTotals %>% filter(Date %in% 750:999)
 DataMasterTotals$Period <- DataMasterTotals$Date
 DataMasterTotals <- DataMasterTotals %>% select(ProjectNumber,Date,Period,Total:SJRWP)
+DataMasterTotals[which(DataMasterTotals$Period %in% 1:749),3] <- 1
 DataMasterTotals[which(DataMasterTotals$Period %in% 750:799),3] <- 750
 DataMasterTotals[which(DataMasterTotals$Period %in% 800:849),3] <- 800
 DataMasterTotals[which(DataMasterTotals$Period %in% 850:899),3] <- 850
 DataMasterTotals[which(DataMasterTotals$Period %in% 900:949),3] <- 900
 DataMasterTotals[which(DataMasterTotals$Period %in% 950:999),3] <- 950
+DataMasterTotals[which(DataMasterTotals$Period %in% 1000:2000),3] <- 1000
 DataMasterTotals$Period <- as.character(DataMasterTotals$Period)
 DataMasterTotals$SJRWDecP <- round(DataMasterTotals$SJRWTotal / DataMasterTotals$DecoratedTotal * 100,2)
 DataMasterTotals$SJRWDecP[which(is.nan(DataMasterTotals$SJRWDecP))] <- 0
@@ -267,7 +268,8 @@ saveRDS(DataMasterTotals,'Data/DataMasterTotals.Rds')
 
 # summary for all sites in the period
 PeriodSummary <- DataMasterTotals
-PeriodSummary <- DataMasterTotals %>% group_by(Period) %>% summarise_at(3:5,funs(sum))
+PeriodSummary <- PeriodSummary %>% filter(Date %in% 750:999)
+PeriodSummary <- PeriodSummary %>% group_by(Period) %>% summarise_at(4:6,funs(sum))
 PeriodSummary$DecP <- round(PeriodSummary$DecoratedTotal / PeriodSummary$Total * 100,2)
 PeriodSummary$SJRWP <- round(PeriodSummary$SJRWTotal / PeriodSummary$Total * 100,2)
 PeriodSummary$SJRWDecP <- round(PeriodSummary$SJRWTotal / PeriodSummary$DecoratedTotal * 100,2)

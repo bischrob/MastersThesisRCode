@@ -2,6 +2,7 @@
 # This script is adapated from the script_01.R from the Mosaic conference and calculates 
 # Typenspektren
 # !diagnostics off
+# note - this script will likely need manual adjustment to work properly
 
 # make sure random effects are the same
 set.seed(1010)
@@ -22,17 +23,17 @@ DMAll <- readRDS('Data/DataMasterAdjusted.Rds')
 # load spatial data
 DMSF <- readRDS('Data/DataMasterSf.Rds')
 
-# DMSP <- st_transform(DMSF, 26912)
-# DMSP <- as(DMSP,"Spatial")
-# bb <- bbox(DMSP)
-# bb[1:2] <- bb[1:2] - 10000
-# bb[3:4] <- bb[3:4] + 10000
-# spext <- as(raster::extent(bb), "SpatialPolygons")
-# spext@proj4string <- DMSP@proj4string
-# win <- owin(xrange=c(bb[1,1],bb[1,2]), yrange= c(bb[2,1],bb[2,2]), unitname="m")
-# s.points <- spsample(spext, 3000,  type="regular")
-# saveRDS(win,"data/win.Rds")
-# saveRDS(s.points,"data/s.points.Rds")
+DMSP <- st_transform(DMSF, 26912)
+DMSP <- as(DMSP,"Spatial")
+bb <- bbox(DMSP)
+bb[1:2] <- bb[1:2] - 10000
+bb[3:4] <- bb[3:4] + 10000
+spext <- as(raster::extent(bb), "SpatialPolygons")
+spext@proj4string <- DMSP@proj4string
+win <- owin(xrange=c(bb[1,1],bb[1,2]), yrange= c(bb[2,1],bb[2,2]), unitname="m")
+s.points <- spsample(spext, 3000,  type="regular")
+saveRDS(win,"data/win.Rds")
+saveRDS(s.points,"data/s.points.Rds")
 win <- readRDS("data/win.Rds")
 s.points <- readRDS("data/s.points.Rds")
 sdev <- 9000
@@ -40,7 +41,7 @@ sdev <- 9000
 results <- list()
 z <- 0
 periods <- sort(unique(DMAll$Period))
-# p = periods[3]
+p = periods[3]
 for(p in periods){
   z <- z + 1
   DMAllSub <- DMAll %>% filter(Period == p)
