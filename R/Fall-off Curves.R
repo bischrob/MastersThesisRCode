@@ -177,7 +177,7 @@ period = unique(sort(sites$Period))
 x <- list(a1 = 50, a2 = 160, a3 = 180, a4 = 180, a5 = 180)
 y = list(a1 = 0, a2 = 3.65, a3 = 3.3, a4 = 3.3, a5 = 3.9)
 i = 0
-# p = period[3]
+p = period[3]
 for(p in period){
   i = i + 1
   x1 <- x[[i]]
@@ -192,7 +192,6 @@ for(p in period){
   #        xlab = "Distance (km)",
   #        ylab = "SJRW %"
   # )
-  distdf$SJRWP[is.infinite(distdf$SJRWP)] <- 0   # fix infinites
   lm1 <- lm(SJRWP ~ distance, data = distdf)
   summary(lm1)
   # xyplot(resid(lm1) ~ fitted(lm1),
